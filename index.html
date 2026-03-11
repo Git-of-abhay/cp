@@ -184,6 +184,36 @@ tr:hover td{background:var(--bg2)}
 .toast.err{border-left-color:var(--red)}
 @keyframes tIn{from{transform:translateX(12px);opacity:0}to{transform:none;opacity:1}}
 
+
+/* PAGINATION */
+.pag-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--surface2);
+  flex-wrap: wrap; gap: 8px;
+}
+.pag-info {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; color: var(--text2);
+}
+.pag-btns { display: flex; gap: 4px; align-items: center; }
+.pag-btn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; font-weight: 500;
+  padding: 5px 10px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text2);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all .12s;
+  min-width: 32px; text-align: center;
+}
+.pag-btn:hover:not(:disabled) { border-color: var(--text2); color: var(--text); }
+.pag-btn.on { border-color: var(--accent); color: var(--accent); background: transparent; }
+.pag-btn:disabled { opacity: .35; cursor: default; }
+
 /* MISC */
 .divider{width:1px;height:20px;background:var(--border)}
 ::-webkit-scrollbar{width:4px;height:4px}
@@ -232,7 +262,7 @@ tr:hover td{background:var(--bg2)}
   <div class="panel">
     <div class="panel-head">
       <span class="panel-title">Problem Sheet</span>
-      <input type="text" class="search" id="searchBox" placeholder="Search name, tag, platform, notes, insights..." oninput="renderTable()">
+      <input type="text" class="search" id="searchBox" placeholder="Search name, tag, platform, notes, insights..." oninput="curPage=1;renderTable()">
     </div>
     <div class="filter-row">
       <button class="chip on" data-f="all"        onclick="setFilter('all',this)">All</button>
@@ -266,6 +296,10 @@ tr:hover td{background:var(--bg2)}
         <div style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--text3);letter-spacing:2px">NO ENTRIES</div>
         <p>Add a problem to get started.</p>
       </div>
+    </div>
+    <div class="pag-bar" id="pagBar" style="display:none">
+      <div class="pag-info" id="pagInfo"></div>
+      <div class="pag-btns" id="pagBtns"></div>
     </div>
   </div>
 
@@ -367,6 +401,8 @@ tr:hover td{background:var(--bg2)}
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let problems   = JSON.parse(localStorage.getItem('cplog_v2') || '[]');
 let curFilter  = 'all';
+let curPage    = 1;
+const PAGE_SIZE = 20;
 let curEntry   = {};
 let qStep      = 0;
 let qAns       = {};
@@ -661,14 +697,15 @@ function finishQ() {
 // ─── TABLE ────────────────────────────────────────────────────────────────────
 function setFilter(f, el) {
   curFilter = f;
+  curPage = 1;
   document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
   el.classList.add('on');
   renderTable();
 }
 
-function renderTable() {
+function filterData() {
   const q = (document.getElementById('searchBox')?.value || '').toLowerCase().trim();
-  let data = [...problems];
+  let data = [...problems]; // problems[0] is newest (unshift on add)
 
   if      (curFilter === 'solved')     data = data.filter(p => p.solved === 'yes');
   else if (curFilter === 'not_solved') data = data.filter(p => p.solved !== 'yes');
@@ -693,13 +730,33 @@ function renderTable() {
           || (p.starting_point||'').toLowerCase().includes(q);
     });
   }
+  return data;
+}
 
-  const tbody = document.getElementById('tBody');
-  const empty = document.getElementById('emptyState');
-  if (!data.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+function renderTable() {
+  const data  = filterData();
+  const total = data.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (curPage > totalPages) curPage = totalPages;
+
+  const tbody   = document.getElementById('tBody');
+  const empty   = document.getElementById('emptyState');
+  const pagBar  = document.getElementById('pagBar');
+  const pagInfo = document.getElementById('pagInfo');
+  const pagBtns = document.getElementById('pagBtns');
+
+  if (!total) {
+    tbody.innerHTML = ''; empty.style.display = 'block'; pagBar.style.display = 'none'; return;
+  }
   empty.style.display = 'none';
+  pagBar.style.display = 'flex';
 
-  tbody.innerHTML = data.map(p => {
+  const start = (curPage - 1) * PAGE_SIZE;
+  const page  = data.slice(start, start + PAGE_SIZE);
+
+  // row number = position in full sorted list (1 = newest)
+  tbody.innerHTML = page.map((p, i) => {
+    const rowNum  = start + i + 1;
     const platName = p.platform || p.plat || 'Other';
     const pc = platCls(platName);
     const solvedHtml = p.solved==='yes' ? '<span class="sv-yes">Solved</span>'
@@ -720,7 +777,7 @@ function renderTable() {
     const dateStr = p.date || (p.datetime ? new Date(p.datetime).toLocaleDateString('en-IN',{year:'numeric',month:'short',day:'numeric'}) : '');
     const timeStr = p.time || (p.datetime ? new Date(p.datetime).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) : '');
     return `<tr>
-      <td style="color:var(--text3);font-family:'IBM Plex Mono',monospace;font-size:11px">${idx+1}</td>
+      <td style="color:var(--text3);font-family:'IBM Plex Mono',monospace;font-size:11px">${rowNum}</td>
       <td>
         <a class="p-name" href="${escH(p.url)}" target="_blank" title="${escH(p.url)}">${escH(name)}</a>
         ${p.diff ? `<div class="p-diff">${escH(p.diff)}</div>` : ''}
@@ -737,6 +794,52 @@ function renderTable() {
       </td>
     </tr>`;
   }).join('');
+
+  // pagination info
+  const endRow = Math.min(start + PAGE_SIZE, total);
+  pagInfo.textContent = `${start+1}–${endRow} of ${total} problem${total===1?'':'s'}`;
+
+  // pagination buttons: Prev, up to 5 page numbers, Next
+  let btns = '';
+  btns += `<button class="pag-btn" onclick="goPage(${curPage-1})" ${curPage===1?'disabled':''}>Prev</button>`;
+
+  const range = pageRange(curPage, totalPages);
+  range.forEach(pg => {
+    if (pg === '…') {
+      btns += `<span style="padding:0 4px;color:var(--text3);font-size:12px;font-family:'IBM Plex Mono',monospace">…</span>`;
+    } else {
+      btns += `<button class="pag-btn${pg===curPage?' on':''}" onclick="goPage(${pg})">${pg}</button>`;
+    }
+  });
+
+  btns += `<button class="pag-btn" onclick="goPage(${curPage+1})" ${curPage===totalPages?'disabled':''}>Next</button>`;
+  pagBtns.innerHTML = btns;
+}
+
+function pageRange(cur, total) {
+  if (total <= 7) return Array.from({length:total},(_,i)=>i+1);
+  const pages = [];
+  if (cur <= 4) {
+    for (let i=1;i<=5;i++) pages.push(i);
+    pages.push('…'); pages.push(total);
+  } else if (cur >= total-3) {
+    pages.push(1); pages.push('…');
+    for (let i=total-4;i<=total;i++) pages.push(i);
+  } else {
+    pages.push(1); pages.push('…');
+    pages.push(cur-1); pages.push(cur); pages.push(cur+1);
+    pages.push('…'); pages.push(total);
+  }
+  return pages;
+}
+
+function goPage(n) {
+  const data = filterData();
+  const totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
+  curPage = Math.max(1, Math.min(n, totalPages));
+  renderTable();
+  // scroll table into view smoothly
+  document.querySelector('.panel').scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 function renderStats() {
