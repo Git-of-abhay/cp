@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CP Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --radius: 2px;
+  --lc:#e8a000; --cf:#2f8fd8; --cses:#22b35e; --ac:#0099cc; --cc:#4db8b0;
+}
+[data-theme="dark"] {
+  --bg:#0c0c0e; --bg2:#111116; --surface:#16161c; --surface2:#1e1e26;
+  --border:#28282f; --border2:#38383f;
+  --accent:#b8f000; --accent-fg:#0c0c0e;
+  --blue:#4f7eff; --red:#e05555;
+  --text:#dddde8; --text2:#888899; --text3:#44444f;
+  --modal-bg:rgba(0,0,0,0.82);
+}
+[data-theme="light"] {
+  --bg:#f4f4f6; --bg2:#ebebee; --surface:#ffffff; --surface2:#f0f0f3;
+  --border:#dcdce4; --border2:#c8c8d0;
+  --accent:#2a6600; --accent-fg:#ffffff;
+  --blue:#2255cc; --red:#cc2222;
+  --text:#1a1a22; --text2:#666677; --text3:#aaaabc;
+  --modal-bg:rgba(0,0,0,0.45);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;transition:background .2s,color .2s}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+.app{max-width:1060px;margin:0 auto;padding:32px 24px 80px}
+
+/* HEADER */
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;gap:16px;flex-wrap:wrap}
+.logo{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:17px;letter-spacing:-.5px;color:var(--text)}
+.logo b{color:var(--accent)}
+.logo-sub{font-size:10px;color:var(--text3);margin-top:3px;letter-spacing:1.5px;text-transform:uppercase;font-family:'IBM Plex Mono',monospace}
+.hdr-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* BUTTONS */
+.btn{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:8px 14px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;transition:border-color .15s,color .15s,background .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;letter-spacing:.3px}
+.btn:hover{border-color:var(--text2);color:var(--text)}
+.btn-primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:600}
+.btn-primary:hover{opacity:.88;color:var(--accent-fg)}
+.btn-ghost{background:transparent;border-color:var(--border)}
+.btn-ghost:hover{border-color:var(--border2);background:var(--surface2)}
+.btn-danger{background:transparent;border-color:transparent;color:var(--text3)}
+.btn-danger:hover{color:var(--red);border-color:var(--red)}
+.btn-sm{padding:5px 10px;font-size:11px}
+
+/* THEME */
+.theme-row{display:flex;align-items:center;gap:7px}
+.theme-lbl{font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--text2)}
+.toggle{width:34px;height:20px;background:var(--border2);border-radius:10px;border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--accent)}
+.toggle::after{content:'';position:absolute;width:14px;height:14px;background:var(--surface);border-radius:50%;top:3px;left:3px;transition:transform .2s}
+.toggle.on::after{transform:translateX(14px)}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:24px}
+.stat{background:var(--surface);padding:14px 16px;text-align:center}
+.stat-n{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:var(--accent);line-height:1}
+.stat-l{font-size:10px;color:var(--text2);margin-top:4px;letter-spacing:1px;text-transform:uppercase}
+
+/* PANEL */
+.panel{background:var(--surface);border:1px solid var(--border);overflow:hidden}
+.panel-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface2);gap:12px;flex-wrap:wrap}
+.panel-title{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2)}
+
+/* FILTER */
+.filter-row{display:flex;align-items:center;gap:6px;padding:10px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.chip{padding:4px 10px;border:1px solid var(--border);background:transparent;font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--text2);cursor:pointer;border-radius:var(--radius);transition:all .12s;white-space:nowrap}
+.chip:hover{border-color:var(--border2);color:var(--text)}
+.chip.on{border-color:var(--accent);color:var(--accent)}
+.f-sep{width:1px;height:18px;background:var(--border);flex-shrink:0}
+.search{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:5px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text);outline:none;width:220px;transition:border-color .15s}
+.search:focus{border-color:var(--border2)}
+.search::placeholder{color:var(--text3)}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{padding:9px 12px;text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);background:var(--surface2);border-bottom:1px solid var(--border);white-space:nowrap;font-weight:500}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg2)}
+.p-name{font-weight:500;color:var(--blue);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.p-diff{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text3);margin-top:2px}
+.plat-tag{display:inline-block;padding:2px 7px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;border-radius:var(--radius)}
+.p-lc{background:rgba(232,160,0,.12);color:var(--lc)}
+.p-cf{background:rgba(47,143,216,.12);color:var(--cf)}
+.p-cses{background:rgba(34,179,94,.12);color:var(--cses)}
+.p-ac{background:rgba(0,153,204,.12);color:var(--ac)}
+.p-cc{background:rgba(77,184,176,.12);color:var(--cc)}
+.p-other{background:var(--bg2);color:var(--text2)}
+.tag-pill{display:inline-block;padding:2px 7px;border:1px solid var(--border2);border-radius:var(--radius);font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text2);background:var(--bg2)}
+.tag-pill.rm{cursor:pointer}
+.tag-pill.rm:hover{border-color:var(--red);color:var(--red)}
+.tags-wrap{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}
+.stars{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:1px;color:#c8a400}
+.stars .off{color:var(--text3)}
+.sv-yes{color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:11px}
+.sv-part{color:var(--lc);font-family:'IBM Plex Mono',monospace;font-size:11px}
+.sv-no{color:var(--text3);font-family:'IBM Plex Mono',monospace;font-size:11px}
+.repeat-badge{display:inline-block;padding:1px 6px;font-size:9px;font-family:'IBM Plex Mono',monospace;font-weight:600;letter-spacing:.5px;text-transform:uppercase;background:rgba(224,85,85,.1);color:var(--red);border:1px solid rgba(224,85,85,.25);border-radius:var(--radius);margin-left:4px}
+.dt-main{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text2);white-space:nowrap}
+.dt-sub{font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-top:2px}
+.empty{text-align:center;padding:56px 20px;color:var(--text3)}
+.empty p{font-size:13px;margin-top:8px}
+
+/* MODALS */
+.overlay{position:fixed;inset:0;background:var(--modal-bg);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .18s}
+.overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);width:100%;max-width:560px;max-height:92vh;overflow-y:auto;transform:translateY(16px);transition:transform .18s}
+.overlay.open .modal{transform:translateY(0)}
+.modal-lg{max-width:660px}
+.m-head{padding:18px 22px 14px;border-bottom:1px solid var(--border)}
+.m-title{font-size:15px;font-weight:600}
+.m-body{padding:20px 22px}
+.m-foot{padding:0 22px 20px;display:flex;justify-content:flex-end;gap:8px}
+
+/* STEP BADGE */
+.step-badge{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1px;color:var(--accent);text-transform:uppercase}
+.q-problem-name{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;margin-top:4px}
+.q-problem-url{font-size:11px;color:var(--text2);font-family:'IBM Plex Mono',monospace;word-break:break-all;margin-top:2px}
+
+/* PROGRESS */
+.prog-track{height:2px;background:var(--border2);margin-bottom:22px}
+.prog-fill{height:100%;background:var(--accent);transition:width .3s ease}
+
+/* Q CONTENT */
+.q-label{font-size:15px;font-weight:600;line-height:1.45;margin-bottom:5px;color:var(--text)}
+.q-hint{font-size:11px;color:var(--text2);font-family:'IBM Plex Mono',monospace;margin-bottom:18px;line-height:1.5}
+.choices{display:flex;flex-direction:column;gap:7px;margin-bottom:20px}
+.choice{padding:11px 14px;border:1px solid var(--border2);background:var(--bg2);border-radius:var(--radius);font-size:13px;color:var(--text2);cursor:pointer;text-align:left;width:100%;font-family:'IBM Plex Sans',sans-serif;transition:all .12s}
+.choice:hover{border-color:var(--border2);color:var(--text);background:var(--surface2)}
+.choice.on{border-color:var(--accent);color:var(--text);background:var(--surface2)}
+.ta{width:100%;min-height:88px;resize:vertical;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:var(--text);outline:none;transition:border-color .15s;margin-bottom:14px;line-height:1.5}
+.ta:focus{border-color:var(--blue)}
+.ta::placeholder{color:var(--text3)}
+.ta-sm{min-height:60px}
+.notes-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.note-row{display:flex;gap:8px;align-items:flex-start}
+.note-n{width:22px;height:22px;flex-shrink:0;background:var(--accent);color:var(--accent-fg);font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace;display:flex;align-items:center;justify-content:center;border-radius:var(--radius);margin-top:2px}
+
+/* FORM */
+.f-label{font-size:10px;font-weight:600;color:var(--text2);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:5px;display:block;font-family:'IBM Plex Mono',monospace}
+.f-hint{font-size:10px;color:var(--text3);font-weight:400;letter-spacing:0;margin-left:6px;text-transform:none}
+.f-input{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:9px 12px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--text);outline:none;transition:border-color .15s}
+.f-input:focus{border-color:var(--blue)}
+.f-input::placeholder{color:var(--text3)}
+.f-row{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-bottom:14px}
+.f-col{flex:1;min-width:180px}
+.f-group{margin-bottom:14px}
+.plat-indicator{display:flex;align-items:center;gap:7px;border:1px solid var(--border2);background:var(--bg2);padding:9px 12px;border-radius:var(--radius);font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text2);min-width:130px;min-height:38px}
+.plat-dot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0}
+.plat-dot.lc{background:var(--lc)} .plat-dot.cf{background:var(--cf)} .plat-dot.cses{background:var(--cses)} .plat-dot.ac{background:var(--ac)} .plat-dot.cc{background:var(--cc)}
+.tag-input{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:9px 12px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text);outline:none;transition:border-color .15s}
+.tag-input:focus{border-color:var(--blue)}
+.tag-input::placeholder{color:var(--text3)}
+.star-row{display:flex;gap:3px;align-items:center}
+.star{font-size:20px;cursor:pointer;color:var(--text3);transition:color .1s;line-height:1;user-select:none}
+.star.on{color:#c8a400}
+.star-clear{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text3);cursor:pointer;margin-left:6px}
+.star-clear:hover{color:var(--red)}
+
+/* DETAIL */
+.d-section{margin-bottom:18px}
+.d-label{font-size:10px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:6px}
+.d-value{font-size:13px;line-height:1.55;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;color:var(--text)}
+.d-value.al{border-left:3px solid var(--accent)}
+.d-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.d-cell{flex:1;min-width:100px}
+.note-badge{display:flex;align-items:flex-start;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;font-size:12.5px;line-height:1.45;margin-bottom:5px}
+.note-badge-n{width:18px;height:18px;flex-shrink:0;background:var(--accent);color:var(--accent-fg);font-size:9px;font-weight:700;font-family:'IBM Plex Mono',monospace;display:flex;align-items:center;justify-content:center;border-radius:var(--radius);margin-top:1px}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.toast{background:var(--surface2);border:1px solid var(--border2);border-left:3px solid var(--accent);border-radius:var(--radius);padding:10px 14px;font-size:12px;font-family:'IBM Plex Mono',monospace;color:var(--text);max-width:320px;animation:tIn .2s ease}
+.toast.err{border-left-color:var(--red)}
+@keyframes tIn{from{transform:translateX(12px);opacity:0}to{transform:none;opacity:1}}
+
+/* MISC */
+.divider{width:1px;height:20px;background:var(--border)}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2)}
+
+@media(max-width:640px){
+  .stats{grid-template-columns:repeat(3,1fr)}
+  .f-row{flex-direction:column}
+  .app{padding:20px 14px 60px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <header>
+    <div>
+      <div class="logo">CP<b>.</b>LOG</div>
+      <div class="logo-sub">Problem Reflection Tracker</div>
+    </div>
+    <div class="hdr-right">
+      <div class="theme-row">
+        <span class="theme-lbl" id="themeLbl">Dark</span>
+        <button class="toggle" id="themeBtn" onclick="toggleTheme()"></button>
+      </div>
+      <div class="divider"></div>
+      <button class="btn btn-ghost" onclick="triggerUpload()">Import CSV</button>
+      <input type="file" id="csvUpload" accept=".csv,.json" style="display:none" onchange="importData(event)">
+      <button class="btn btn-ghost" onclick="exportCSV()">Export CSV</button>
+      <button class="btn btn-primary" onclick="openAdd()">+ Add Problem</button>
+    </div>
+  </header>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat"><div class="stat-n" id="sTotal">0</div><div class="stat-l">Total</div></div>
+    <div class="stat"><div class="stat-n" id="sSolved">0</div><div class="stat-l">Self Solved</div></div>
+    <div class="stat"><div class="stat-n" id="sEditorial">0</div><div class="stat-l">Used Hints</div></div>
+    <div class="stat"><div class="stat-n" id="sRepeat">0</div><div class="stat-l">Repeat Issues</div></div>
+    <div class="stat"><div class="stat-n" id="sPlatforms">0</div><div class="stat-l">Platforms</div></div>
+  </div>
+
+  <!-- TABLE PANEL -->
+  <div class="panel">
+    <div class="panel-head">
+      <span class="panel-title">Problem Sheet</span>
+      <input type="text" class="search" id="searchBox" placeholder="Search name, tag, platform, notes, insights..." oninput="renderTable()">
+    </div>
+    <div class="filter-row">
+      <button class="chip on" data-f="all"        onclick="setFilter('all',this)">All</button>
+      <button class="chip"    data-f="LeetCode"   onclick="setFilter('LeetCode',this)">LeetCode</button>
+      <button class="chip"    data-f="Codeforces" onclick="setFilter('Codeforces',this)">Codeforces</button>
+      <button class="chip"    data-f="CSES"       onclick="setFilter('CSES',this)">CSES</button>
+      <button class="chip"    data-f="AtCoder"    onclick="setFilter('AtCoder',this)">AtCoder</button>
+      <button class="chip"    data-f="CodeChef"   onclick="setFilter('CodeChef',this)">CodeChef</button>
+      <div class="f-sep"></div>
+      <button class="chip" data-f="solved"     onclick="setFilter('solved',this)">Self Solved</button>
+      <button class="chip" data-f="not_solved" onclick="setFilter('not_solved',this)">Not Solved</button>
+      <button class="chip" data-f="repeat"     onclick="setFilter('repeat',this)">Repeat Issues</button>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th>Problem</th>
+            <th>Platform</th>
+            <th>Tags</th>
+            <th>Rating</th>
+            <th>Solved</th>
+            <th>Date / Time</th>
+            <th style="width:110px"></th>
+          </tr>
+        </thead>
+        <tbody id="tBody"></tbody>
+      </table>
+      <div id="emptyState" class="empty" style="display:none">
+        <div style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--text3);letter-spacing:2px">NO ENTRIES</div>
+        <p>Add a problem to get started.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ ADD MODAL ═══ -->
+<div class="overlay" id="addModal">
+  <div class="modal">
+    <div class="m-head">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div class="m-title">Log New Problem</div>
+        <button class="btn btn-sm btn-ghost" onclick="closeAdd()">Close</button>
+      </div>
+      <div class="f-row">
+        <div class="f-col">
+          <label class="f-label">Problem URL</label>
+          <input type="url" class="f-input" id="addUrl" placeholder="https://leetcode.com/problems/..." oninput="detectPlatform(this.value)">
+        </div>
+        <div>
+          <label class="f-label">Platform</label>
+          <div class="plat-indicator" id="platInd">
+            <div class="plat-dot" id="platDot"></div>
+            <span id="platTxt">Auto-detect</span>
+          </div>
+        </div>
+      </div>
+      <div class="f-row">
+        <div class="f-col">
+          <label class="f-label">Name <span class="f-hint">optional</span></label>
+          <input type="text" class="f-input" id="addName" placeholder="Two Sum, 1A, ...">
+        </div>
+        <div>
+          <label class="f-label">Difficulty</label>
+          <select class="f-input" id="addDiff" style="width:120px">
+            <option value="">—</option>
+            <option>Easy</option><option>Medium</option><option>Hard</option>
+            <option>Div 1</option><option>Div 2</option><option>Div 3</option>
+          </select>
+        </div>
+      </div>
+      <div class="f-group">
+        <label class="f-label">Tags <span class="f-hint">Enter or comma to add each tag</span></label>
+        <input type="text" class="tag-input" id="addTagInput" placeholder="dp, graphs, binary-search..." onkeydown="handleTagKey(event)">
+        <div class="tags-wrap" id="addTagPrev"></div>
+      </div>
+      <div class="f-group" style="margin-bottom:0">
+        <label class="f-label">Rating <span class="f-hint">how good was this problem?</span></label>
+        <div class="star-row" id="starRow">
+          <span class="star" data-v="1" onclick="setRating(1)">&#9733;</span>
+          <span class="star" data-v="2" onclick="setRating(2)">&#9733;</span>
+          <span class="star" data-v="3" onclick="setRating(3)">&#9733;</span>
+          <span class="star" data-v="4" onclick="setRating(4)">&#9733;</span>
+          <span class="star" data-v="5" onclick="setRating(5)">&#9733;</span>
+          <span class="star-clear" onclick="setRating(0)">clear</span>
+        </div>
+      </div>
+    </div>
+    <div class="m-body" style="padding-top:14px;padding-bottom:16px">
+      <button class="btn btn-primary" style="width:100%" onclick="startQ()">Start Reflection</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ QUESTIONNAIRE MODAL ═══ -->
+<div class="overlay" id="qModal">
+  <div class="modal">
+    <div class="m-head">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <span class="step-badge" id="qBadge">Step 1</span>
+        <button class="btn btn-sm btn-ghost" onclick="closeQ()">Cancel</button>
+      </div>
+      <div class="q-problem-name" id="qName">—</div>
+      <div class="q-problem-url" id="qUrl">—</div>
+    </div>
+    <div class="m-body">
+      <div class="prog-track"><div class="prog-fill" id="qProg" style="width:0%"></div></div>
+      <div id="qContent"></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-primary" id="qNext" onclick="qAdvance()" style="display:none">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DETAIL MODAL ═══ -->
+<div class="overlay" id="detailModal">
+  <div class="modal modal-lg">
+    <div class="m-head" style="display:flex;justify-content:space-between;align-items:center">
+      <div class="m-title" id="detailTitle">—</div>
+      <button class="btn btn-sm btn-ghost" onclick="closeDetail()">Close</button>
+    </div>
+    <div class="m-body" id="detailBody"></div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let problems   = JSON.parse(localStorage.getItem('cplog_v2') || '[]');
+let curFilter  = 'all';
+let curEntry   = {};
+let qStep      = 0;
+let qAns       = {};
+let pendTags   = [];
+let pendRating = 0;
+
+// ─── THEME ────────────────────────────────────────────────────────────────────
+let darkMode = localStorage.getItem('cplog_theme') !== 'light';
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+  document.getElementById('themeBtn').classList.toggle('on', darkMode);
+  document.getElementById('themeLbl').textContent = darkMode ? 'Dark' : 'Light';
+  localStorage.setItem('cplog_theme', darkMode ? 'dark' : 'light');
+}
+function toggleTheme() { darkMode = !darkMode; applyTheme(); }
+applyTheme();
+
+// ─── PLATFORM ─────────────────────────────────────────────────────────────────
+function platformFrom(url) {
+  if (!url) return null;
+  const u = url.toLowerCase();
+  if (u.includes('leetcode.com'))   return 'LeetCode';
+  if (u.includes('codeforces.com')) return 'Codeforces';
+  if (u.includes('cses.fi'))        return 'CSES';
+  if (u.includes('atcoder.jp'))     return 'AtCoder';
+  if (u.includes('codechef.com'))   return 'CodeChef';
+  return 'Other';
+}
+function platCls(p) {
+  return { LeetCode:'lc', Codeforces:'cf', CSES:'cses', AtCoder:'ac', CodeChef:'cc' }[p] || 'other';
+}
+function extractName(url, plat) {
+  try {
+    const parts = new URL(url).pathname.split('/').filter(Boolean);
+    if (plat === 'LeetCode' && parts.includes('problems'))
+      return parts[parts.indexOf('problems')+1]?.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) || '';
+    return parts.slice(-1)[0] || '';
+  } catch { return ''; }
+}
+function detectPlatform(url) {
+  const p = platformFrom(url);
+  document.getElementById('platDot').className = 'plat-dot' + (p ? ' ' + platCls(p) : '');
+  document.getElementById('platTxt').textContent = p || 'Auto-detect';
+  if (p && !document.getElementById('addName').value) {
+    const n = extractName(url, p);
+    if (n) document.getElementById('addName').value = n;
+  }
+}
+
+// ─── TAGS / RATING ────────────────────────────────────────────────────────────
+function handleTagKey(e) {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    const v = e.target.value.replace(/,/g,'').trim().toLowerCase();
+    if (v && !pendTags.includes(v)) { pendTags.push(v); renderTagPrev(); }
+    e.target.value = '';
+  }
+}
+function removeTag(t) { pendTags = pendTags.filter(x => x !== t); renderTagPrev(); }
+function renderTagPrev() {
+  document.getElementById('addTagPrev').innerHTML =
+    pendTags.map(t => `<span class="tag-pill rm" onclick="removeTag('${escH(t)}')">${escH(t)} x</span>`).join('');
+}
+function setRating(v) {
+  pendRating = v;
+  document.querySelectorAll('#starRow .star').forEach(s => s.classList.toggle('on', +s.dataset.v <= v));
+}
+
+// ─── ADD MODAL ────────────────────────────────────────────────────────────────
+function openAdd() {
+  curEntry = {}; pendTags = []; pendRating = 0;
+  ['addUrl','addName'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('addDiff').value     = '';
+  document.getElementById('addTagInput').value = '';
+  document.getElementById('addTagPrev').innerHTML = '';
+  document.getElementById('platDot').className  = 'plat-dot';
+  document.getElementById('platTxt').textContent = 'Auto-detect';
+  setRating(0);
+  openModal('addModal');
+}
+function closeAdd()   { closeModal('addModal'); }
+
+// ─── QUESTIONNAIRE STEPS ──────────────────────────────────────────────────────
+const STEPS = [
+  { id:'solved', type:'choice', pct:10,
+    question:'Did you solve this problem on your own?',
+    hint:'Without editorials, hints, or outside help.',
+    choices:[
+      {l:'Yes — completely on my own', v:'yes'},
+      {l:'Partially — needed a small nudge', v:'partial'},
+      {l:'No — needed significant help', v:'no'}
+    ]
+  },
+  { id:'understood', type:'choice', pct:20,
+    cond: a => a.solved === 'no' || a.solved === 'partial',
+    question:'Did you fully understand the problem statement before attempting?',
+    choices:[
+      {l:'Yes, understood it clearly', v:'yes'},
+      {l:'No, had trouble understanding', v:'no'}
+    ]
+  },
+  { id:'understand_issue', type:'text', pct:28,
+    cond: a => (a.solved==='no'||a.solved==='partial') && a.understood==='no',
+    question:'What was the issue with understanding the problem?',
+    placeholder:'Edge cases, constraints, ambiguous phrasing...'
+  },
+  { id:'editorial', type:'choice', pct:38,
+    question:'Did you read the editorial, solution tab, or hints?',
+    choices:[{l:'Yes',v:'yes'},{l:'No',v:'no'}]
+  },
+  { id:'editorial_missed', type:'text', pct:48,
+    cond: a => a.editorial === 'yes',
+    question:'What was the key insight you missed?',
+    placeholder:'The observation, algorithm, or technique you did not think of...'
+  },
+  { id:'video', type:'choice', pct:52,
+    cond: a => a.editorial === 'no',
+    question:'Did you watch a video explanation?',
+    choices:[{l:'Yes',v:'yes'},{l:'No',v:'no'}]
+  },
+  { id:'video_missed', type:'text', pct:60,
+    cond: a => a.video === 'yes',
+    question:'What did the video reveal that you had missed?',
+    placeholder:'Core trick, pattern, or data structure...'
+  },
+  { id:'repeat_seen', type:'choice', pct:68,
+    question:'Have you encountered this same type of problem or mistake before?',
+    hint:'A recurring pattern, bug, or concept you keep getting wrong.',
+    choices:[{l:'Yes, this feels familiar', v:'yes'},{l:'No, this is new', v:'no'}]
+  },
+  { id:'repeat_info', type:'repeat_check', pct:78,
+    cond: a => a.repeat_seen === 'yes',
+    question:'What is the common mistake, and which previous problem does it relate to?',
+    hint:'Enter the recurring mistake and optionally the previous problem name or URL. If found in your log, it will be marked as a repeat issue.'
+  },
+  { id:'notes', type:'notes3', pct:88,
+    question:'What are 3 things you want to remember from this problem?',
+    hint:'Patterns, edge cases, techniques, gotchas...'
+  },
+  { id:'starting_point', type:'text', pct:97,
+    question:'If you see this problem again, what is your starting approach?',
+    placeholder:'In one or two sentences — the first thing you would do correctly...'
+  }
+];
+
+function visSteps() { return STEPS.filter(s => !s.cond || s.cond(qAns)); }
+
+function startQ() {
+  const url = document.getElementById('addUrl').value.trim();
+  if (!url) { toast('Enter a problem URL first.', true); return; }
+  const tagRaw = document.getElementById('addTagInput').value.replace(/,/g,'').trim().toLowerCase();
+  if (tagRaw && !pendTags.includes(tagRaw)) pendTags.push(tagRaw);
+  const plat = platformFrom(url) || 'Other';
+  const name = document.getElementById('addName').value.trim() || extractName(url, plat) || url;
+  const diff = document.getElementById('addDiff').value;
+  const now  = new Date();
+  curEntry = {
+    url, platform: plat, name, diff,
+    tags: [...pendTags], rating: pendRating,
+    date:     now.toLocaleDateString('en-IN', {year:'numeric',month:'short',day:'numeric'}),
+    time:     now.toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'}),
+    datetime: now.toISOString(),
+    id: Date.now()
+  };
+  qAns = {}; qStep = 0;
+  document.getElementById('qName').textContent = name;
+  document.getElementById('qUrl').textContent  = url;
+  closeAdd();
+  openModal('qModal');
+  renderQStep();
+}
+
+function renderQStep() {
+  const steps = visSteps();
+  const s = steps[qStep];
+  if (!s) { finishQ(); return; }
+  const isLast = qStep === steps.length - 1;
+  document.getElementById('qBadge').textContent = `Step ${qStep+1} of ${steps.length}`;
+  document.getElementById('qProg').style.width  = s.pct + '%';
+  document.getElementById('qNext').textContent  = isLast ? 'Save Problem' : 'Next';
+
+  let html = `<div class="q-label">${escH(s.question)}</div>`;
+  if (s.hint) html += `<div class="q-hint">${escH(s.hint)}</div>`;
+
+  if (s.type === 'choice') {
+    html += `<div class="choices">`;
+    s.choices.forEach(c => {
+      html += `<button class="choice${qAns[s.id]===c.v?' on':''}" onclick="pickChoice('${s.id}','${c.v}',this)">${escH(c.l)}</button>`;
+    });
+    html += `</div>`;
+    document.getElementById('qNext').style.display = qAns[s.id] ? 'inline-flex' : 'none';
+
+  } else if (s.type === 'text') {
+    html += `<textarea class="ta" id="qTa" placeholder="${escH(s.placeholder||'')}" oninput="qAns['${s.id}']=this.value">${escH(qAns[s.id]||'')}</textarea>`;
+    document.getElementById('qNext').style.display = 'inline-flex';
+
+  } else if (s.type === 'notes3') {
+    const saved = qAns[s.id] || ['','',''];
+    html += `<div class="notes-list">`;
+    [0,1,2].forEach(i => {
+      html += `<div class="note-row">
+        <div class="note-n">${i+1}</div>
+        <textarea class="ta ta-sm" style="margin-bottom:0" placeholder="Note ${i+1}..." oninput="onNoteInput(${i},this.value)">${escH(saved[i]||'')}</textarea>
+      </div>`;
+    });
+    html += `</div>`;
+    document.getElementById('qNext').style.display = 'inline-flex';
+
+  } else if (s.type === 'repeat_check') {
+    const rc = qAns.repeat_info || {};
+    html += `
+      <div class="f-group">
+        <label class="f-label">Common mistake</label>
+        <textarea class="ta ta-sm" id="rcMistake" placeholder="What pattern or mistake keeps coming up?" oninput="onRcInput('mistake',this.value)">${escH(rc.mistake||'')}</textarea>
+      </div>
+      <div class="f-group" style="margin-bottom:0">
+        <label class="f-label">Previous problem <span class="f-hint">name or URL — will be cross-referenced</span></label>
+        <input type="text" class="f-input" id="rcPrev" placeholder="Two Sum or https://..." value="${escH(rc.prev||'')}" oninput="onRcInput('prev',this.value)">
+      </div>`;
+    document.getElementById('qNext').style.display = 'inline-flex';
+  }
+
+  document.getElementById('qContent').innerHTML = html;
+}
+
+function pickChoice(id, val, btn) {
+  qAns[id] = val;
+  btn.closest('.choices').querySelectorAll('.choice').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('qNext').style.display = 'inline-flex';
+  const isLast = qStep === visSteps().length - 1;
+  document.getElementById('qNext').textContent = isLast ? 'Save Problem' : 'Next';
+}
+function onNoteInput(i, v) {
+  if (!qAns.notes) qAns.notes = ['','',''];
+  qAns.notes[i] = v;
+}
+function onRcInput(field, val) {
+  if (!qAns.repeat_info) qAns.repeat_info = {};
+  qAns.repeat_info[field] = val;
+}
+function qAdvance() {
+  const steps = visSteps();
+  const s = steps[qStep];
+  if (s.type === 'text') { const ta = document.getElementById('qTa'); if (ta) qAns[s.id] = ta.value; }
+  qStep++;
+  renderQStep();
+}
+function closeQ() { closeModal('qModal'); }
+
+function finishQ() {
+  closeModal('qModal');
+  const rc = qAns.repeat_info || {};
+  let prevRef = null;
+  if (rc.prev) {
+    const needle = rc.prev.trim().toLowerCase();
+    prevRef = problems.find(p =>
+      (p.url||'').toLowerCase().includes(needle) ||
+      (p.name||'').toLowerCase().includes(needle)
+    );
+    if (prevRef) {
+      prevRef.repeat_issue = true;
+      if (!prevRef.repeat_from) prevRef.repeat_from = [];
+      if (!prevRef.repeat_from.includes(curEntry.url)) prevRef.repeat_from.push(curEntry.url);
+    }
+  }
+  const entry = {
+    ...curEntry,
+    solved:           qAns.solved || 'no',
+    understood:       qAns.understood || 'yes',
+    understand_issue: qAns.understand_issue || '',
+    editorial:        qAns.editorial || 'no',
+    editorial_missed: qAns.editorial_missed || '',
+    video:            qAns.video || 'no',
+    video_missed:     qAns.video_missed || '',
+    repeat_seen:      qAns.repeat_seen || 'no',
+    repeat_mistake:   rc.mistake || '',
+    repeat_prev:      rc.prev || '',
+    repeat_prev_ref:  prevRef ? prevRef.id : null,
+    repeat_issue:     qAns.repeat_seen === 'yes',
+    notes:            (qAns.notes || []).map(n => n.trim()).filter(Boolean),
+    starting_point:   qAns.starting_point || '',
+  };
+  problems.unshift(entry);
+  save();
+  renderTable();
+  renderStats();
+  if (prevRef) toast(`"${prevRef.name || prevRef.url}" marked as a repeat issue.`);
+  else toast('Problem logged.');
+}
+
+// ─── TABLE ────────────────────────────────────────────────────────────────────
+function setFilter(f, el) {
+  curFilter = f;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  renderTable();
+}
+
+function renderTable() {
+  const q = (document.getElementById('searchBox')?.value || '').toLowerCase().trim();
+  let data = [...problems];
+
+  if      (curFilter === 'solved')     data = data.filter(p => p.solved === 'yes');
+  else if (curFilter === 'not_solved') data = data.filter(p => p.solved !== 'yes');
+  else if (curFilter === 'repeat')     data = data.filter(p => p.repeat_issue);
+  else if (curFilter !== 'all')        data = data.filter(p => (p.platform||p.plat) === curFilter);
+
+  if (q) {
+    data = data.filter(p => {
+      const tags  = Array.isArray(p.tags)  ? p.tags.join(' ')  : (p.tags||'');
+      const notes = Array.isArray(p.notes) ? p.notes.join(' ') : (p.notes||'');
+      return (p.name||'').toLowerCase().includes(q)
+          || (p.url||'').toLowerCase().includes(q)
+          || (p.platform||p.plat||'').toLowerCase().includes(q)
+          || tags.toLowerCase().includes(q)
+          || (p.diff||'').toLowerCase().includes(q)
+          || (p.understand_issue||'').toLowerCase().includes(q)
+          || (p.editorial_missed||'').toLowerCase().includes(q)
+          || (p.video_missed||'').toLowerCase().includes(q)
+          || (p.repeat_mistake||'').toLowerCase().includes(q)
+          || (p.repeat_prev||'').toLowerCase().includes(q)
+          || notes.toLowerCase().includes(q)
+          || (p.starting_point||'').toLowerCase().includes(q);
+    });
+  }
+
+  const tbody = document.getElementById('tBody');
+  const empty = document.getElementById('emptyState');
+  if (!data.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = data.map(p => {
+    const platName = p.platform || p.plat || 'Other';
+    const pc = platCls(platName);
+    const solvedHtml = p.solved==='yes' ? '<span class="sv-yes">Solved</span>'
+                     : p.solved==='partial' ? '<span class="sv-part">Partial</span>'
+                     : '<span class="sv-no">No</span>';
+    const tags = Array.isArray(p.tags) ? p.tags : (p.tags ? String(p.tags).split(/[,|]+/).map(t=>t.trim()).filter(Boolean) : []);
+    const tagsHtml = tags.length
+      ? tags.slice(0,3).map(t=>`<span class="tag-pill">${escH(t)}</span>`).join('')
+        + (tags.length > 3 ? `<span class="tag-pill">+${tags.length-3}</span>` : '')
+      : `<span style="color:var(--text3);font-size:11px">—</span>`;
+    const r = +p.rating || 0;
+    const starsHtml = r
+      ? `<span class="stars">${'&#9733;'.repeat(r)}<span class="off">${'&#9733;'.repeat(5-r)}</span></span>`
+      : `<span style="color:var(--text3)">—</span>`;
+    const repeatBadge = p.repeat_issue ? '<span class="repeat-badge">Repeat</span>' : '';
+    const idx = problems.indexOf(p);
+    const name = p.name || p.url;
+    const dateStr = p.date || (p.datetime ? new Date(p.datetime).toLocaleDateString('en-IN',{year:'numeric',month:'short',day:'numeric'}) : '');
+    const timeStr = p.time || (p.datetime ? new Date(p.datetime).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) : '');
+    return `<tr>
+      <td style="color:var(--text3);font-family:'IBM Plex Mono',monospace;font-size:11px">${idx+1}</td>
+      <td>
+        <a class="p-name" href="${escH(p.url)}" target="_blank" title="${escH(p.url)}">${escH(name)}</a>
+        ${p.diff ? `<div class="p-diff">${escH(p.diff)}</div>` : ''}
+        ${repeatBadge}
+      </td>
+      <td><span class="plat-tag p-${pc}">${platName}</span></td>
+      <td><div style="display:flex;flex-wrap:wrap;gap:3px">${tagsHtml}</div></td>
+      <td>${starsHtml}</td>
+      <td>${solvedHtml}</td>
+      <td><div class="dt-main">${escH(dateStr)}</div>${timeStr ? `<div class="dt-sub">${escH(timeStr)}</div>` : ''}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm btn-ghost" onclick="viewDetail(${idx})">View</button>
+        <button class="btn btn-sm btn-danger" onclick="delEntry(${idx})">Del</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderStats() {
+  document.getElementById('sTotal').textContent     = problems.length;
+  document.getElementById('sSolved').textContent    = problems.filter(p => p.solved==='yes').length;
+  document.getElementById('sEditorial').textContent = problems.filter(p => p.editorial==='yes').length;
+  document.getElementById('sRepeat').textContent    = problems.filter(p => p.repeat_issue).length;
+  document.getElementById('sPlatforms').textContent = new Set(problems.map(p => p.platform||p.plat).filter(Boolean)).size;
+}
+
+function delEntry(idx) {
+  if (!confirm('Delete this entry?')) return;
+  problems.splice(idx, 1); save(); renderTable(); renderStats(); toast('Deleted.');
+}
+
+// ─── DETAIL VIEW ──────────────────────────────────────────────────────────────
+function viewDetail(idx) {
+  const p = problems[idx];
+  document.getElementById('detailTitle').textContent = p.name || p.url;
+  const platName = p.platform || p.plat || 'Other';
+  const pc = platCls(platName);
+  const tags = Array.isArray(p.tags) ? p.tags : (p.tags ? String(p.tags).split(/[,|]+/).map(t=>t.trim()).filter(Boolean) : []);
+  const dateStr = p.date || (p.datetime ? new Date(p.datetime).toLocaleDateString('en-IN',{year:'numeric',month:'short',day:'numeric'}) : '—');
+  const timeStr = p.time || (p.datetime ? new Date(p.datetime).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) : '');
+  const r = +p.rating || 0;
+
+  let html = `
+    <div class="d-section">
+      <div class="d-label">Link</div>
+      <div class="d-value" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span class="plat-tag p-${pc}">${platName}</span>
+        <a href="${escH(p.url)}" target="_blank" style="word-break:break-all">${escH(p.url)}</a>
+      </div>
+    </div>
+    <div class="d-row">
+      <div class="d-cell"><div class="d-label">Solved</div>
+        <div class="d-value">${p.solved==='yes'?'Yes — self solved':p.solved==='partial'?'Partial':'No'}</div></div>
+      <div class="d-cell"><div class="d-label">Editorial</div>
+        <div class="d-value">${p.editorial==='yes'?'Yes':'No'}</div></div>
+      <div class="d-cell"><div class="d-label">Logged</div>
+        <div class="d-value">${escH(dateStr)}${timeStr?' · '+escH(timeStr):''}</div></div>
+      ${p.diff?`<div class="d-cell"><div class="d-label">Difficulty</div><div class="d-value">${escH(p.diff)}</div></div>`:''}
+    </div>`;
+
+  if (tags.length) html += `
+    <div class="d-section">
+      <div class="d-label">Tags</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">${tags.map(t=>`<span class="tag-pill">${escH(t)}</span>`).join('')}</div>
+    </div>`;
+
+  if (r) html += `
+    <div class="d-section">
+      <div class="d-label">Rating</div>
+      <span class="stars" style="font-size:16px">${'&#9733;'.repeat(r)}<span class="off">${'&#9733;'.repeat(5-r)}</span></span>
+    </div>`;
+
+  if (p.understand_issue) html += `
+    <div class="d-section"><div class="d-label">Understanding Issue</div>
+    <div class="d-value">${escH(p.understand_issue)}</div></div>`;
+
+  if (p.editorial_missed) html += `
+    <div class="d-section"><div class="d-label">Key Insight Missed</div>
+    <div class="d-value">${escH(p.editorial_missed)}</div></div>`;
+
+  if (p.video_missed) html += `
+    <div class="d-section"><div class="d-label">Missed from Video</div>
+    <div class="d-value">${escH(p.video_missed)}</div></div>`;
+
+  if (p.repeat_issue) {
+    const prevRef = p.repeat_prev_ref ? problems.find(x => x.id == p.repeat_prev_ref) : null;
+    html += `
+    <div class="d-section">
+      <div class="d-label">Repeat Issue</div>
+      <div class="d-value">
+        ${p.repeat_mistake ? `<div style="margin-bottom:8px"><div style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px">Common Mistake</div>${escH(p.repeat_mistake)}</div>` : ''}
+        ${p.repeat_prev ? `<div><div style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px">Previous Problem</div>
+          ${prevRef
+            ? `<span style="color:var(--red)">${escH(prevRef.name||prevRef.url)}</span> <span class="repeat-badge">marked</span>`
+            : escH(p.repeat_prev)
+          }</div>` : ''}
+      </div>
+    </div>`;
+  }
+
+  if (p.notes && p.notes.length) html += `
+    <div class="d-section"><div class="d-label">Key Notes</div>
+    ${p.notes.map((n,i) => `<div class="note-badge"><div class="note-badge-n">${i+1}</div>${escH(n)}</div>`).join('')}</div>`;
+
+  if (p.starting_point) html += `
+    <div class="d-section"><div class="d-label">Starting Approach Next Time</div>
+    <div class="d-value al">${escH(p.starting_point)}</div></div>`;
+
+  if (p.repeat_from && p.repeat_from.length) {
+    const refs = p.repeat_from.map(url => {
+      const ref = problems.find(x => x.url === url);
+      return ref ? escH(ref.name || ref.url) : escH(url);
+    });
+    html += `<div class="d-section"><div class="d-label">Referenced by newer problems</div>
+      <div class="d-value">${refs.join('<br>')}</div></div>`;
+  }
+
+  document.getElementById('detailBody').innerHTML = html;
+  openModal('detailModal');
+}
+function closeDetail() { closeModal('detailModal'); }
+
+// ─── MODAL HELPERS ────────────────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+['addModal','detailModal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+});
+
+// ─── EXPORT / IMPORT ──────────────────────────────────────────────────────────
+const CSV_HDR = ['id','name','url','platform','diff','date','time','datetime',
+  'tags','rating','solved','understood','understand_issue','editorial',
+  'editorial_missed','video','video_missed','repeat_seen','repeat_mistake',
+  'repeat_prev','repeat_issue','note_1','note_2','note_3','starting_point'];
+
+function csvCell(v) {
+  return '"' + String(v ?? '').replace(/\r?\n|\r/g,' ').replace(/"/g,'""') + '"';
+}
+
+function exportCSV() {
+  if (!problems.length) { toast('Nothing to export.', true); return; }
+  const rows = problems.map(p => {
+    const notes = Array.isArray(p.notes) ? p.notes : (p.notes ? [p.notes] : []);
+    const tags  = Array.isArray(p.tags)  ? p.tags.join(', ')  : (p.tags || '');
+    return [
+      p.id, p.name, p.url, p.platform||p.plat, p.diff,
+      p.date, p.time, p.datetime, tags, p.rating||'',
+      p.solved, p.understood, p.understand_issue,
+      p.editorial, p.editorial_missed, p.video, p.video_missed,
+      p.repeat_seen, p.repeat_mistake, p.repeat_prev, p.repeat_issue?'yes':'',
+      notes[0]||'', notes[1]||'', notes[2]||'', p.starting_point
+    ].map(csvCell).join(',');
+  });
+  const csv = '\uFEFF' + [CSV_HDR.join(','), ...rows].join('\r\n');
+  dl('cp-log.csv', csv, 'text/csv;charset=utf-8');
+  toast('CSV exported.');
+}
+
+function triggerUpload() { document.getElementById('csvUpload').click(); }
+
+function normalise(obj) {
+  if ('note_1' in obj || 'note_2' in obj || 'note_3' in obj) {
+    obj.notes = [obj.note_1||'',obj.note_2||'',obj.note_3||''].map(s=>s.trim()).filter(Boolean);
+    delete obj.note_1; delete obj.note_2; delete obj.note_3;
+  } else if (typeof obj.notes === 'string') {
+    const n = obj.notes.trim();
+    obj.notes = n ? (n.startsWith('[') ? (()=>{try{return JSON.parse(n).filter(Boolean)}catch{return[n]}})() : n.split(/\s*\|\s*/).filter(Boolean)) : [];
+  } else if (!Array.isArray(obj.notes)) obj.notes = [];
+
+  if (typeof obj.tags === 'string') obj.tags = obj.tags ? obj.tags.split(/[,|]+/).map(t=>t.trim().toLowerCase()).filter(Boolean) : [];
+  else if (!Array.isArray(obj.tags)) obj.tags = [];
+
+  obj.rating = Math.min(5, Math.max(0, parseInt(obj.rating)||0));
+  if (!obj.id) obj.id = Date.now() + Math.random();
+
+  const pc = obj.platform || obj.plat;
+  if (pc) obj.platform = pc;
+  else if (obj.url) obj.platform = platformFrom(obj.url) || 'Other';
+
+  ['name','url','diff','date','time','datetime','solved','understood',
+   'understand_issue','editorial','editorial_missed','video','video_missed',
+   'repeat_seen','repeat_mistake','repeat_prev','starting_point'
+  ].forEach(k => { if (obj[k] == null) obj[k] = ''; });
+
+  if (!['yes','no','partial'].includes(obj.solved)) obj.solved = obj.solved || 'no';
+  if (!['yes','no'].includes(obj.editorial))        obj.editorial = obj.editorial || 'no';
+  if (!['yes','no'].includes(obj.video))            obj.video = obj.video || 'no';
+  obj.repeat_issue = obj.repeat_issue==='yes' || obj.repeat_issue===true || obj.repeat_seen==='yes';
+  return obj;
+}
+
+function mergePair(ex, inc) {
+  const m = { ...ex };
+  ['name','diff','date','time','datetime'].forEach(k => { if (!m[k] && inc[k]) m[k] = inc[k]; });
+  ['understand_issue','editorial_missed','video_missed','starting_point','repeat_mistake','repeat_prev'].forEach(k => {
+    if (!m[k] && inc[k]) m[k] = inc[k];
+  });
+  const rank = {yes:2,partial:1,no:0};
+  if ((rank[inc.solved]||0) > (rank[m.solved]||0)) m.solved = inc.solved;
+  if (inc.editorial==='yes') m.editorial = 'yes';
+  if (inc.video==='yes')     m.video = 'yes';
+  if (inc.repeat_seen==='yes'||inc.repeat_issue) { m.repeat_seen='yes'; m.repeat_issue=true; }
+  m.notes = [...new Set([...(m.notes||[]),...(inc.notes||[])].map(n=>n.trim()).filter(Boolean))];
+  m.tags  = [...new Set([...(m.tags||[]),...(inc.tags||[])].map(t=>t.trim().toLowerCase()).filter(Boolean))];
+  if ((inc.rating||0) > (m.rating||0)) m.rating = inc.rating;
+  return m;
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const text = e.target.result.replace(/^\uFEFF/, '');
+      let added = 0, merged = 0;
+      const proc = raw => {
+        const entry = normalise(raw);
+        if (!entry.url) return;
+        const ei = problems.findIndex(x => x.url === entry.url);
+        if (ei === -1) { problems.push(entry); added++; }
+        else { problems[ei] = mergePair(problems[ei], entry); merged++; }
+      };
+      if (file.name.endsWith('.json')) {
+        const d = JSON.parse(text);
+        (Array.isArray(d) ? d : (d.problems||[])).forEach(proc);
+      } else {
+        const all = parseCSV(text);
+        if (all.length < 2) { toast('CSV appears empty.', true); return; }
+        const hdrs = all[0].map(h => h.trim());
+        for (let i = 1; i < all.length; i++) {
+          if (all[i].every(v => !v.trim())) continue;
+          const obj = {};
+          hdrs.forEach((h,j) => { obj[h] = (all[i][j]??'').trim(); });
+          proc(obj);
+        }
+      }
+      save(); renderTable(); renderStats();
+      const parts = [];
+      if (added)  parts.push(`${added} new`);
+      if (merged) parts.push(`${merged} merged`);
+      toast(`Import complete — ${parts.join(', ') || 'no changes'}.`);
+    } catch(err) { toast('Import failed: ' + err.message, true); }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function parseCSV(text) {
+  const rows = []; let cur = []; let f = ''; let inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i], n = text[i+1];
+    if (inQ) {
+      if (c==='"'&&n==='"') { f+='"'; i++; } else if (c==='"') inQ=false; else f+=c;
+    } else {
+      if (c==='"') inQ=true;
+      else if (c===',') { cur.push(f); f=''; }
+      else if (c==='\r'&&n==='\n') { cur.push(f); f=''; rows.push(cur); cur=[]; i++; }
+      else if (c==='\n'||c==='\r') { cur.push(f); f=''; rows.push(cur); cur=[]; }
+      else f+=c;
+    }
+  }
+  if (f || cur.length) { cur.push(f); rows.push(cur); }
+  return rows.filter(r => r.some(x => x.trim()));
+}
+
+function dl(name, content, mime) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], {type:mime}));
+  a.download = name; a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function save() { localStorage.setItem('cplog_v2', JSON.stringify(problems)); }
+function escH(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function toast(msg, err=false) {
+  const t = document.createElement('div');
+  t.className = 'toast' + (err ? ' err' : '');
+  t.textContent = msg;
+  document.getElementById('toastWrap').appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+renderTable();
+renderStats();
+</script>
+</body>
+</html>
