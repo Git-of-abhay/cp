@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CP Tracker — Problem Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0b;
+    --surface: #111114;
+    --surface2: #18181d;
+    --border: #2a2a32;
+    --border-bright: #3d3d4a;
+    --accent: #c8f23c;
+    --accent2: #5c8aff;
+    --accent3: #ff6b6b;
+    --text: #e8e8f0;
+    --text-dim: #6b6b80;
+    --text-muted: #3d3d50;
+    --lc: #ffa500;
+    --cf: #1f8dd6;
+    --cses: #2dc573;
+    --ac: #00bfff;
+    --cc: #5bc8be;
+    --radius: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* GRID BG */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(200,242,60,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(200,242,60,0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 32px 20px 80px; }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 28px;
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+  .logo span { color: var(--accent); }
+  .logo-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .header-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+  /* BUTTONS */
+  .btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-bright);
+    background: var(--surface2);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(200,242,60,0.05); }
+  .btn-primary {
+    background: var(--accent);
+    color: #0a0a0b;
+    border-color: var(--accent);
+    font-weight: 700;
+  }
+  .btn-primary:hover { background: #d9ff4a; color: #0a0a0b; border-color: #d9ff4a; }
+  .btn-danger { border-color: var(--accent3); color: var(--accent3); }
+  .btn-danger:hover { background: rgba(255,107,107,0.1); }
+  .btn-sm { padding: 5px 10px; font-size: 11px; }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: flex;
+    gap: 1px;
+    background: var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+  .stat-item {
+    flex: 1;
+    background: var(--surface);
+    padding: 12px 16px;
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .stat-label { font-size: 10px; color: var(--text-dim); margin-top: 3px; letter-spacing: 1px; text-transform: uppercase; }
+
+  /* PANEL */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .panel-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  .panel-body { padding: 20px; }
+
+  /* INPUT FORM */
+  .input-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+  .input-group { flex: 1; min-width: 220px; }
+  .input-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .input-field {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border-bright);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text);
+    transition: border-color 0.15s;
+    outline: none;
+  }
+  .input-field:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(200,242,60,0.1); }
+  .input-field::placeholder { color: var(--text-muted); }
+
+  /* PLATFORM BADGE */
+  .platform-detect {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: var(--radius);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    font-size: 12px;
+    min-height: 40px;
+    min-width: 130px;
+    color: var(--text-dim);
+  }
+  .platform-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    flex-shrink: 0;
+  }
+  .platform-dot.lc { background: var(--lc); box-shadow: 0 0 6px var(--lc); }
+  .platform-dot.cf { background: var(--cf); box-shadow: 0 0 6px var(--cf); }
+  .platform-dot.cses { background: var(--cses); box-shadow: 0 0 6px var(--cses); }
+  .platform-dot.ac { background: var(--ac); box-shadow: 0 0 6px var(--ac); }
+  .platform-dot.cc { background: var(--cc); box-shadow: 0 0 6px var(--cc); }
+
+  /* QUESTIONNAIRE MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border-bright);
+    border-radius: 10px;
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: translateY(20px);
+    transition: transform 0.2s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-top {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .modal-step-badge {
+    background: var(--accent);
+    color: #000;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+  .modal-problem-info { flex: 1; }
+  .modal-problem-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    line-height: 1.2;
+  }
+  .modal-problem-url {
+    font-size: 11px;
+    color: var(--text-dim);
+    word-break: break-all;
+  }
+  .modal-body { padding: 24px; }
+
+  .q-text {
+    font-size: 15px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    margin-bottom: 20px;
+    line-height: 1.4;
+    color: var(--text);
+  }
+  .q-sub { font-size: 11px; color: var(--text-dim); margin-top: 4px; font-family: 'JetBrains Mono', monospace; font-weight: 400; }
+
+  .choice-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+  .choice-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .choice-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(200,242,60,0.05); }
+  .choice-btn.selected { border-color: var(--accent); background: rgba(200,242,60,0.1); color: var(--accent); }
+  .choice-icon { font-size: 16px; flex-shrink: 0; }
+
+  .textarea-field {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border-bright);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text);
+    resize: vertical;
+    min-height: 90px;
+    outline: none;
+    transition: border-color 0.15s;
+    margin-bottom: 16px;
+  }
+  .textarea-field:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(200,242,60,0.1); }
+  .textarea-field::placeholder { color: var(--text-muted); }
+
+  .notes-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .note-item {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .note-num {
+    width: 24px; height: 24px;
+    background: var(--accent);
+    color: #000;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .progress-bar-wrap {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  .modal-footer { padding: 0 24px 24px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  th {
+    background: var(--surface2);
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    color: var(--text);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .platform-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .platform-tag.lc { background: rgba(255,165,0,0.15); color: var(--lc); }
+  .platform-tag.cf { background: rgba(31,141,214,0.15); color: var(--cf); }
+  .platform-tag.cses { background: rgba(45,197,115,0.15); color: var(--cses); }
+  .platform-tag.ac { background: rgba(0,191,255,0.15); color: var(--ac); }
+  .platform-tag.cc { background: rgba(91,200,190,0.15); color: var(--cc); }
+  .platform-tag.other { background: rgba(255,255,255,0.08); color: var(--text-dim); }
+
+  .solved-yes { color: var(--accent); }
+  .solved-no { color: var(--accent3); }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text-muted);
+  }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
+  .empty-text { font-size: 13px; font-family: 'Syne', sans-serif; }
+
+  /* VIEW DETAIL MODAL */
+  .detail-section { margin-bottom: 20px; }
+  .detail-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .detail-value {
+    font-size: 13px;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    line-height: 1.5;
+  }
+  .detail-value a { color: var(--accent2); text-decoration: none; }
+  .detail-value a:hover { text-decoration: underline; }
+
+  .note-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 6px 10px;
+    font-size: 12px;
+    width: 100%;
+    margin-bottom: 6px;
+  }
+  .note-badge-num {
+    width: 18px; height: 18px;
+    background: var(--accent);
+    color: #000;
+    border-radius: 3px;
+    font-size: 9px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* TOASTS */
+  .toast-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: var(--surface2);
+    border: 1px solid var(--border-bright);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: 12px;
+    color: var(--text);
+    max-width: 300px;
+    animation: slideIn 0.2s ease;
+    border-left: 3px solid var(--accent);
+  }
+  .toast.error { border-left-color: var(--accent3); }
+  @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  /* FILTER BAR */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .filter-chip {
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    font-size: 11px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-chip:hover, .filter-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(200,242,60,0.08); }
+
+  .search-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    outline: none;
+    width: 160px;
+    transition: border-color 0.15s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--text-muted); }
+
+  /* UPLOAD */
+  .upload-zone {
+    border: 2px dashed var(--border-bright);
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-dim);
+    font-size: 12px;
+  }
+  .upload-zone:hover { border-color: var(--accent); color: var(--accent); background: rgba(200,242,60,0.03); }
+  .upload-zone input { display: none; }
+
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px; display: block; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 4px; }
+
+  @media (max-width: 600px) {
+    .stats-bar { flex-wrap: wrap; }
+    .stat-item { flex: 1 1 40%; }
+    .input-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div>
+      <div class="logo">CP<span>.</span>LOG</div>
+      <div class="logo-sub">Problem Reflection Tracker</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn" onclick="triggerUpload()">⬆ Import CSV</button>
+      <input type="file" id="csvUpload" accept=".csv,.json" style="display:none" onchange="importData(event)">
+      <button class="btn" onclick="exportCSV()">⬇ Export CSV</button>
+      <button class="btn btn-primary" onclick="openAddModal()">+ Add Problem</button>
+    </div>
+  </header>
+
+  <!-- STATS -->
+  <div class="stats-bar" id="statsBar">
+    <div class="stat-item"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Total</div></div>
+    <div class="stat-item"><div class="stat-num" id="statSolved">0</div><div class="stat-label">Self-Solved</div></div>
+    <div class="stat-item"><div class="stat-num" id="statEditorial">0</div><div class="stat-label">Used Hints</div></div>
+    <div class="stat-item"><div class="stat-num" id="statPlatforms">0</div><div class="stat-label">Platforms</div></div>
+  </div>
+
+  <!-- TABLE PANEL -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Problem Sheet</span>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="text" class="search-input" placeholder="🔍 search..." id="searchInput" oninput="renderTable()">
+      </div>
+    </div>
+    <div style="padding: 12px 16px 0; border-bottom: 1px solid var(--border);">
+      <div class="filter-bar" id="filterBar">
+        <span class="filter-chip active" data-filter="all" onclick="setFilter('all',this)">All</span>
+        <span class="filter-chip" data-filter="LeetCode" onclick="setFilter('LeetCode',this)">LeetCode</span>
+        <span class="filter-chip" data-filter="Codeforces" onclick="setFilter('Codeforces',this)">Codeforces</span>
+        <span class="filter-chip" data-filter="CSES" onclick="setFilter('CSES',this)">CSES</span>
+        <span class="filter-chip" data-filter="AtCoder" onclick="setFilter('AtCoder',this)">AtCoder</span>
+        <span class="filter-chip" data-filter="CodeChef" onclick="setFilter('CodeChef',this)">CodeChef</span>
+        <span class="filter-chip" data-filter="solved" onclick="setFilter('solved',this)">✓ Self-Solved</span>
+        <span class="filter-chip" data-filter="not_solved" onclick="setFilter('not_solved',this)">✗ Not Self-Solved</span>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table id="problemTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Problem</th>
+            <th>Platform</th>
+            <th>Solved?</th>
+            <th>Editorial</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div id="emptyState" class="empty-state" style="display:none;">
+        <div class="empty-icon">📂</div>
+        <div class="empty-text">No problems logged yet.</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Click "Add Problem" to get started.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PROBLEM MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-top" style="flex-direction:column;gap:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;">Log New Problem</div>
+        <button class="btn btn-sm" onclick="closeAddModal()">✕ Close</button>
+      </div>
+      <div class="input-row" style="width:100%;">
+        <div class="input-group">
+          <label class="input-label">Problem URL</label>
+          <input type="url" class="input-field" id="problemUrl" placeholder="https://leetcode.com/problems/..." oninput="detectPlatform(this.value)">
+        </div>
+        <div>
+          <label class="input-label">Platform</label>
+          <div class="platform-detect" id="platformDetect">
+            <div class="platform-dot" id="platformDot"></div>
+            <span id="platformText">Auto-detect</span>
+          </div>
+        </div>
+      </div>
+      <div class="input-row" style="width:100%;">
+        <div class="input-group">
+          <label class="input-label">Problem Name (optional)</label>
+          <input type="text" class="input-field" id="problemName" placeholder="Two Sum / 1A / #1021...">
+        </div>
+        <div>
+          <label class="input-label">Difficulty</label>
+          <select class="input-field" id="problemDiff" style="width:130px;">
+            <option value="">—</option>
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+            <option value="Div1">Div 1</option>
+            <option value="Div2">Div 2</option>
+            <option value="Div3">Div 3</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-body" style="padding-top:16px;">
+      <button class="btn btn-primary" style="width:100%;" onclick="startQuestionnaire()">Start Reflection →</button>
+    </div>
+  </div>
+</div>
+
+<!-- QUESTIONNAIRE MODAL -->
+<div class="modal-overlay" id="qModal">
+  <div class="modal">
+    <div class="modal-top">
+      <div class="modal-step-badge" id="qBadge">STEP 1</div>
+      <div class="modal-problem-info">
+        <div class="modal-problem-name" id="qProblemName">Problem Name</div>
+        <div class="modal-problem-url" id="qProblemUrl">url</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="qProgress" style="width:0%"></div>
+      </div>
+      <div id="qContent"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sm btn-danger" onclick="cancelQuestionnaire()">✕ Cancel</button>
+      <button class="btn btn-sm btn-primary" id="qNextBtn" onclick="qNext()" style="display:none">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL VIEW MODAL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-top" style="justify-content:space-between;align-items:center;flex-direction:row;">
+      <div class="modal-problem-name" id="detailTitle" style="font-size:18px;"></div>
+      <button class="btn btn-sm" onclick="closeDetail()">✕ Close</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let problems = JSON.parse(localStorage.getItem('cplog_problems') || '[]');
+let currentFilter = 'all';
+let currentEntry = {};
+let qStep = 0;
+let qAnswers = {};
+
+// ─── PLATFORM DETECTION ──────────────────────────────────────────────────────
+function detectPlatformFromUrl(url) {
+  if (!url) return null;
+  const u = url.toLowerCase();
+  if (u.includes('leetcode.com')) return 'LeetCode';
+  if (u.includes('codeforces.com')) return 'Codeforces';
+  if (u.includes('cses.fi')) return 'CSES';
+  if (u.includes('atcoder.jp')) return 'AtCoder';
+  if (u.includes('codechef.com')) return 'CodeChef';
+  return 'Other';
+}
+
+function platformClass(p) {
+  const map = { LeetCode:'lc', Codeforces:'cf', CSES:'cses', AtCoder:'ac', CodeChef:'cc', Other:'other' };
+  return map[p] || 'other';
+}
+
+function detectPlatform(url) {
+  const p = detectPlatformFromUrl(url);
+  const dot = document.getElementById('platformDot');
+  const txt = document.getElementById('platformText');
+  dot.className = 'platform-dot ' + (p ? platformClass(p) : '');
+  txt.textContent = p || 'Auto-detect';
+  currentEntry.platform = p;
+  // Auto-fill problem name from URL if empty
+  if (p && !document.getElementById('problemName').value) {
+    const name = extractNameFromUrl(url, p);
+    if (name) document.getElementById('problemName').value = name;
+  }
+}
+
+function extractNameFromUrl(url, platform) {
+  try {
+    const u = new URL(url);
+    const parts = u.pathname.split('/').filter(Boolean);
+    if (platform === 'LeetCode' && parts.includes('problems')) {
+      const idx = parts.indexOf('problems');
+      return parts[idx+1]?.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) || '';
+    }
+    if (platform === 'Codeforces') return parts.slice(-2).join('/');
+    if (platform === 'CSES') return parts.slice(-1)[0] || '';
+    if (platform === 'AtCoder') return parts.slice(-1)[0] || '';
+    if (platform === 'CodeChef') return parts.slice(-1)[0] || '';
+  } catch(e) {}
+  return '';
+}
+
+// ─── QUESTIONNAIRE ────────────────────────────────────────────────────────────
+const STEPS = [
+  { id: 'solved', type: 'choice', progress: 10,
+    question: 'Did you solve this on your own?',
+    sub: 'Without editorial, hints, or outside help',
+    choices: [{ label: '✅  Yes, fully on my own', value: 'yes' }, { label: '🤔  Partially — needed small hints', value: 'partial' }, { label: '❌  No, needed significant help', value: 'no' }]
+  },
+  { id: 'understood', type: 'choice_conditional', progress: 25, condition: (a) => a.solved === 'no' || a.solved === 'partial',
+    question: 'Did you fully understand the problem statement?',
+    sub: 'Before you started solving',
+    choices: [{ label: '✅  Yes, understood it clearly', value: 'yes' }, { label: '❌  No, had trouble understanding', value: 'no' }]
+  },
+  { id: 'understand_issue', type: 'text', progress: 35, condition: (a) => (a.solved === 'no' || a.solved === 'partial') && a.understood === 'no',
+    question: 'What was the issue with understanding the problem?',
+    placeholder: 'Describe what confused you — edge cases, problem phrasing, constraints...',
+  },
+  { id: 'editorial', type: 'choice', progress: 45,
+    question: 'Did you read the editorial or look at hints?',
+    sub: 'Blogs, solution tabs, discuss sections',
+    choices: [{ label: '✅  Yes, read editorial/hints', value: 'yes' }, { label: '❌  No editorial / not needed', value: 'no' }]
+  },
+  { id: 'editorial_missed', type: 'text', progress: 55, condition: (a) => a.editorial === 'yes',
+    question: 'What was the key insight you missed?',
+    placeholder: 'The key observation, algorithm, or technique you did not think of...',
+  },
+  { id: 'video', type: 'choice', progress: 60, condition: (a) => a.editorial === 'no',
+    question: 'Did you watch a video explanation?',
+    sub: 'YouTube, NeetCode, Errichto, etc.',
+    choices: [{ label: '✅  Yes, watched a video', value: 'yes' }, { label: '❌  No, figured it out / skipped', value: 'no' }]
+  },
+  { id: 'video_missed', type: 'text', progress: 70, condition: (a) => a.video === 'yes',
+    question: 'What insight from the video did you miss?',
+    placeholder: 'The core trick or approach you had not considered...',
+  },
+  { id: 'notes', type: 'notes3', progress: 85,
+    question: '📌 What are 3 things you want to remember from this problem?',
+    sub: 'Patterns, techniques, edge cases, optimisations...',
+  },
+  { id: 'starting_point', type: 'text', progress: 95,
+    question: '🧭 If you encounter this again, what is your starting approach?',
+    placeholder: 'In one or two sentences — the first thing you would do correctly...',
+  },
+];
+
+function visibleSteps() {
+  return STEPS.filter(s => !s.condition || s.condition(qAnswers));
+}
+
+function openAddModal() {
+  currentEntry = {};
+  document.getElementById('problemUrl').value = '';
+  document.getElementById('problemName').value = '';
+  document.getElementById('problemDiff').value = '';
+  document.getElementById('platformDot').className = 'platform-dot';
+  document.getElementById('platformText').textContent = 'Auto-detect';
+  document.getElementById('addModal').classList.add('open');
+}
+function closeAddModal() { document.getElementById('addModal').classList.remove('open'); }
+
+function startQuestionnaire() {
+  const url = document.getElementById('problemUrl').value.trim();
+  if (!url) { toast('Please enter a problem URL', true); return; }
+  const platform = detectPlatformFromUrl(url) || 'Other';
+  const name = document.getElementById('problemName').value.trim() || extractNameFromUrl(url, platform) || url;
+  const diff = document.getElementById('problemDiff').value;
+
+  currentEntry = { url, platform, name, diff, date: new Date().toISOString().split('T')[0], id: Date.now() };
+  qAnswers = {};
+  qStep = 0;
+
+  document.getElementById('qProblemName').textContent = name;
+  document.getElementById('qProblemUrl').textContent = url;
+  closeAddModal();
+  document.getElementById('qModal').classList.add('open');
+  renderQStep();
+}
+
+function renderQStep() {
+  const steps = visibleSteps();
+  const step = steps[qStep];
+  if (!step) { finishQuestionnaire(); return; }
+
+  document.getElementById('qBadge').textContent = `STEP ${qStep+1} / ${steps.length}`;
+  document.getElementById('qProgress').style.width = step.progress + '%';
+
+  let html = `<div class="q-text">${step.question}${step.sub ? `<div class="q-sub">${step.sub}</div>` : ''}</div>`;
+
+  if (step.type === 'choice' || step.type === 'choice_conditional') {
+    html += `<div class="choice-group">`;
+    step.choices.forEach(c => {
+      const sel = qAnswers[step.id] === c.value ? ' selected' : '';
+      html += `<button class="choice-btn${sel}" onclick="chooseAnswer('${step.id}','${c.value}',this)">${c.label}</button>`;
+    });
+    html += `</div>`;
+    document.getElementById('qNextBtn').style.display = qAnswers[step.id] ? 'inline-flex' : 'none';
+  } else if (step.type === 'text') {
+    const val = qAnswers[step.id] || '';
+    html += `<textarea class="textarea-field" id="qTextArea" placeholder="${step.placeholder}" oninput="onTextInput(this.value)">${val}</textarea>`;
+    document.getElementById('qNextBtn').style.display = 'inline-flex';
+    document.getElementById('qNextBtn').textContent = 'Next →';
+  } else if (step.type === 'notes3') {
+    const saved = qAnswers[step.id] || ['','',''];
+    html += `<div class="notes-list">`;
+    [0,1,2].forEach(i => {
+      html += `<div class="note-item">
+        <div class="note-num">${i+1}</div>
+        <textarea class="textarea-field" style="min-height:60px;margin-bottom:0;" placeholder="Note ${i+1}..." oninput="onNoteInput(${i},this.value)">${saved[i]||''}</textarea>
+      </div>`;
+    });
+    html += `</div>`;
+    document.getElementById('qNextBtn').style.display = 'inline-flex';
+    document.getElementById('qNextBtn').textContent = qStep === visibleSteps().length - 1 ? 'Save Problem ✓' : 'Next →';
+  }
+
+  if (qStep === visibleSteps().length - 1 && step.type !== 'notes3') {
+    document.getElementById('qNextBtn').textContent = 'Save Problem ✓';
+  } else if (step.type !== 'notes3') {
+    document.getElementById('qNextBtn').textContent = 'Next →';
+  }
+
+  document.getElementById('qContent').innerHTML = html;
+}
+
+function onTextInput(val) {
+  const steps = visibleSteps();
+  qAnswers[steps[qStep].id] = val;
+}
+function onNoteInput(idx, val) {
+  if (!qAnswers['notes']) qAnswers['notes'] = ['','',''];
+  qAnswers['notes'][idx] = val;
+}
+
+function chooseAnswer(id, value, btn) {
+  qAnswers[id] = value;
+  document.querySelectorAll('#qContent .choice-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('qNextBtn').style.display = 'inline-flex';
+  document.getElementById('qNextBtn').textContent = qStep === visibleSteps().length - 1 ? 'Save Problem ✓' : 'Next →';
+}
+
+function qNext() {
+  const steps = visibleSteps();
+  const step = steps[qStep];
+  // Save text field if active
+  if (step.type === 'text') {
+    const ta = document.getElementById('qTextArea');
+    if (ta) qAnswers[step.id] = ta.value;
+  }
+  qStep++;
+  renderQStep();
+}
+
+function cancelQuestionnaire() {
+  document.getElementById('qModal').classList.remove('open');
+}
+
+function finishQuestionnaire() {
+  document.getElementById('qModal').classList.remove('open');
+  const entry = {
+    ...currentEntry,
+    solved: qAnswers.solved || 'no',
+    understood: qAnswers.understood || 'yes',
+    understand_issue: qAnswers.understand_issue || '',
+    editorial: qAnswers.editorial || 'no',
+    editorial_missed: qAnswers.editorial_missed || '',
+    video: qAnswers.video || 'no',
+    video_missed: qAnswers.video_missed || '',
+    notes: (qAnswers.notes || ['','']).filter(n=>n.trim()),
+    starting_point: qAnswers.starting_point || '',
+  };
+  problems.unshift(entry);
+  save();
+  renderTable();
+  renderStats();
+  toast('✓ Problem logged successfully!');
+}
+
+// ─── TABLE ────────────────────────────────────────────────────────────────────
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+function renderTable() {
+  const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  let data = problems;
+  if (currentFilter !== 'all') {
+    if (currentFilter === 'solved') data = data.filter(p => p.solved === 'yes');
+    else if (currentFilter === 'not_solved') data = data.filter(p => p.solved !== 'yes');
+    else data = data.filter(p => p.platform === currentFilter);
+  }
+  if (q) data = data.filter(p => (p.name||'').toLowerCase().includes(q) || (p.url||'').toLowerCase().includes(q));
+
+  const tbody = document.getElementById('tableBody');
+  const empty = document.getElementById('emptyState');
+  if (!data.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = data.map((p, i) => {
+    const cls = platformClass(p.platform);
+    const solvedHtml = p.solved === 'yes'
+      ? '<span class="solved-yes">✓ Self</span>'
+      : p.solved === 'partial'
+      ? '<span style="color:var(--lc)">~ Partial</span>'
+      : '<span class="solved-no">✗ No</span>';
+    const editHtml = p.editorial === 'yes' ? '<span style="color:var(--text-dim)">Yes</span>' : '<span style="color:var(--text-muted)">No</span>';
+    const name = p.name || p.url;
+    return `<tr>
+      <td style="color:var(--text-muted);width:32px;">${problems.indexOf(p)+1}</td>
+      <td>
+        <a href="${p.url}" target="_blank" style="color:var(--accent2);text-decoration:none;" title="${p.url}">
+          <span class="truncate">${escHtml(name)}</span>
+        </a>
+        ${p.diff ? `<span style="font-size:10px;color:var(--text-muted);"> · ${p.diff}</span>` : ''}
+      </td>
+      <td><span class="platform-tag ${cls}">${p.platform||'?'}</span></td>
+      <td>${solvedHtml}</td>
+      <td>${editHtml}</td>
+      <td style="color:var(--text-muted);white-space:nowrap;">${p.date||''}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-sm" onclick="viewDetail(${problems.indexOf(p)})">👁 View</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteEntry(${problems.indexOf(p)})" style="margin-left:4px;">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderStats() {
+  document.getElementById('statTotal').textContent = problems.length;
+  document.getElementById('statSolved').textContent = problems.filter(p => p.solved === 'yes').length;
+  document.getElementById('statEditorial').textContent = problems.filter(p => p.editorial === 'yes').length;
+  document.getElementById('statPlatforms').textContent = new Set(problems.map(p=>p.platform).filter(Boolean)).size;
+}
+
+function deleteEntry(idx) {
+  if (!confirm('Delete this entry?')) return;
+  problems.splice(idx, 1);
+  save();
+  renderTable();
+  renderStats();
+  toast('Entry deleted');
+}
+
+// ─── DETAIL VIEW ──────────────────────────────────────────────────────────────
+function viewDetail(idx) {
+  const p = problems[idx];
+  document.getElementById('detailTitle').textContent = p.name || p.url;
+  const cls = platformClass(p.platform);
+
+  let html = `
+    <div class="detail-section">
+      <div class="detail-label">Platform & Link</div>
+      <div class="detail-value" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <span class="platform-tag ${cls}">${p.platform}</span>
+        <a href="${p.url}" target="_blank">${p.url}</a>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
+      <div style="flex:1;min-width:120px;">
+        <div class="detail-label">Self-Solved</div>
+        <div class="detail-value">${p.solved === 'yes' ? '✅ Yes' : p.solved === 'partial' ? '🤔 Partially' : '❌ No'}</div>
+      </div>
+      <div style="flex:1;min-width:120px;">
+        <div class="detail-label">Read Editorial</div>
+        <div class="detail-value">${p.editorial === 'yes' ? '📖 Yes' : '—'}</div>
+      </div>
+      <div style="flex:1;min-width:120px;">
+        <div class="detail-label">Date</div>
+        <div class="detail-value">${p.date || '—'}</div>
+      </div>
+      ${p.diff ? `<div style="flex:1;min-width:80px;"><div class="detail-label">Difficulty</div><div class="detail-value">${p.diff}</div></div>` : ''}
+    </div>`;
+
+  if (p.understand_issue) html += `
+    <div class="detail-section">
+      <div class="detail-label">⚠️ Understanding Issue</div>
+      <div class="detail-value">${escHtml(p.understand_issue)}</div>
+    </div>`;
+
+  if (p.editorial_missed) html += `
+    <div class="detail-section">
+      <div class="detail-label">💡 Key Insight Missed</div>
+      <div class="detail-value">${escHtml(p.editorial_missed)}</div>
+    </div>`;
+
+  if (p.video_missed) html += `
+    <div class="detail-section">
+      <div class="detail-label">🎬 Missed from Video</div>
+      <div class="detail-value">${escHtml(p.video_missed)}</div>
+    </div>`;
+
+  if (p.notes && p.notes.length) html += `
+    <div class="detail-section">
+      <div class="detail-label">📌 Key Notes</div>
+      ${p.notes.map((n,i) => `<div class="note-badge"><div class="note-badge-num">${i+1}</div>${escHtml(n)}</div>`).join('')}
+    </div>`;
+
+  if (p.starting_point) html += `
+    <div class="detail-section">
+      <div class="detail-label">🧭 Starting Point Next Time</div>
+      <div class="detail-value" style="border-left:3px solid var(--accent);padding-left:14px;">${escHtml(p.starting_point)}</div>
+    </div>`;
+
+  document.getElementById('detailBody').innerHTML = html;
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function closeDetail() { document.getElementById('detailModal').classList.remove('open'); }
+
+// Click outside to close modals
+['addModal','detailModal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+});
+
+// ─── IMPORT / EXPORT ──────────────────────────────────────────────────────────
+function exportCSV() {
+  if (!problems.length) { toast('No data to export', true); return; }
+  const headers = ['id','name','url','platform','diff','date','solved','understood','understand_issue','editorial','editorial_missed','video','video_missed','notes','starting_point'];
+  const rows = problems.map(p => headers.map(h => {
+    let v = p[h];
+    if (Array.isArray(v)) v = v.join(' | ');
+    v = String(v ?? '').replace(/"/g,'""');
+    return `"${v}"`;
+  }).join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  download('cp-log.csv', csv, 'text/csv');
+  toast('CSV exported!');
+}
+
+function triggerUpload() { document.getElementById('csvUpload').click(); }
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const text = e.target.result;
+      if (file.name.endsWith('.json')) {
+        const data = JSON.parse(text);
+        if (Array.isArray(data)) {
+          const before = problems.length;
+          data.forEach(p => { if (p.url && !problems.find(x=>x.url===p.url)) problems.push(p); });
+          save(); renderTable(); renderStats();
+          toast(`Imported ${problems.length - before} new entries`);
+        }
+      } else {
+        // CSV parse
+        const lines = text.split('\n').filter(Boolean);
+        const headers = parseCSVLine(lines[0]);
+        let added = 0;
+        for (let i = 1; i < lines.length; i++) {
+          const vals = parseCSVLine(lines[i]);
+          const obj = {};
+          headers.forEach((h,j) => {
+            let v = vals[j] || '';
+            if (h === 'notes') obj[h] = v ? v.split(' | ').filter(Boolean) : [];
+            else obj[h] = v;
+          });
+          if (obj.url && !problems.find(x=>x.url===obj.url)) { problems.push(obj); added++; }
+        }
+        save(); renderTable(); renderStats();
+        toast(`Imported ${added} new entries`);
+      }
+    } catch(err) { toast('Import failed: invalid file', true); }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function parseCSVLine(line) {
+  const result = []; let cur = ''; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { if (inQ && line[i+1] === '"') { cur += '"'; i++; } else inQ = !inQ; }
+    else if (c === ',' && !inQ) { result.push(cur); cur = ''; }
+    else cur += c;
+  }
+  result.push(cur);
+  return result;
+}
+
+function download(filename, content, mime) {
+  const blob = new Blob([content], { type: mime });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function save() { localStorage.setItem('cplog_problems', JSON.stringify(problems)); }
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function toast(msg, isError=false) {
+  const wrap = document.getElementById('toastWrap');
+  const t = document.createElement('div');
+  t.className = 'toast' + (isError ? ' error' : '');
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+renderTable();
+renderStats();
+</script>
+</body>
+</html>
